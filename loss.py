@@ -12,8 +12,10 @@ def create_l2_loss(target):
 
 def create_mc_loss(target, observed_entries):
 
+    mask = jnp.array(observed_entries, dtype=float)
+
     def loss_fn(output):
-        residual = (output - target)[observed_entries]
+        residual = mask * (output - target)
         return 1/2 * jnp.mean(residual**2)
     
     return loss_fn

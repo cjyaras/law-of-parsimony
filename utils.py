@@ -8,7 +8,6 @@ from jax import vmap, jit
 def sensing_operator(output_mat, sensing_mat):
     return jnp.mean(output_mat * sensing_mat)
 
-@partial(jit, static_argnames=['factors'])
 def update_weights(weights, gradient, step_size, factors):
     if factors:
         inner_weights = jax.tree_map(lambda p, g: p - step_size * g, weights[1:-1], gradient[1:-1])
