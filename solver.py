@@ -15,9 +15,7 @@ def update_weights(weights, gradient, step_size, factors):
     else:
         return jax.tree_map(lambda p, g: p - step_size * g, weights, gradient)
 
-def train(init_weights, loss_fn, network_fn, n_epochs, step_size, n_inner_loops = 100, factors=False, save_weights=False):
-
-    e2e_loss_fn = lambda w: loss_fn(network_fn(w))
+def train(init_weights, e2e_loss_fn, n_epochs, step_size, n_inner_loops=100, factors=False, save_weights=False):
 
     # Define fun body in lax.fori_loop
     def body_fun(_, w):

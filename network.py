@@ -52,12 +52,12 @@ def compute_end_to_end(weights):
         product = w @ product
     return product
 
-def compute_prefactor(init_weights, loss_fn, network_fn, grad_rank):
+def compute_prefactor(init_weights, e2e_loss_fn, grad_rank):
 
     width = init_weights[0].shape[0]
     init_scale = jnp.linalg.norm(init_weights[0]) / jnp.sqrt(width)
 
-    grad_W1_t0 = grad(lambda w: loss_fn(network_fn(w)))(init_weights)[0]
+    grad_W1_t0 = grad(e2e_loss_fn)(init_weights)[0]
     Ugrad, _, Vgrad = svd(grad_W1_t0)
     Va = init_weights[0].T @ Ugrad[:, grad_rank:] / init_scale
     Vb = Vgrad[:, grad_rank:]
