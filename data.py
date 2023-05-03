@@ -19,13 +19,14 @@ def generate_data(key, shape, rank=None, orth=False):
             random.normal(key=key2, shape=(rank, n))) / rank
     else:
         mat = random.normal(key=key, shape=shape)
+        
     return mat
 
 def generate_observation_matrix(key, percent_observed, shape):
     n_entries = prod(shape)
     n_observations = int(n_entries * percent_observed)
     indices = random.choice(key=key, a=jnp.arange(n_entries), shape=(n_observations,), replace=False)
-    return jnp.zeros(n_entries, dtype=bool).at[indices].set(True).reshape(*shape)
+    return jnp.zeros(n_entries, dtype=float).at[indices].set(1).reshape(*shape)
 
 def generate_sensing_matrices(key, n_measurements, shape):
     return random.normal(key=key, shape=(n_measurements, shape[0], shape[1]))

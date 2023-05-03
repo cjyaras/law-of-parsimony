@@ -13,8 +13,7 @@ def create_l2_loss(target, reduction="mean"):
             raise ValueError("Reduction type not implemented")
     return loss_fn
 
-def create_mc_loss(target, observed_entries, reduction="mean"):
-    mask = jnp.array(observed_entries, dtype=float)
+def create_mc_loss(target, mask, reduction="mean"):
     def loss_fn(output):
         residual = mask * (output - target)
         if reduction == "mean":
