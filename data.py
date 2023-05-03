@@ -3,13 +3,22 @@ import jax.numpy as jnp
 
 from math import prod
 
-def generate_data(key, shape, rank=None):
-    if rank is None:
-        mat = random.normal(key=key, shape=shape)
-    else:
+def generate_data(key, shape, rank=None, orth=False):
+    m, n = shape
+    d = jnp.maximum(m, n)
+
+    if orth:
+        mat = random.orthogonal(key=key, n=d)
+        if m > n:
+            mat = mat[:, :n]
+        else:
+            mat = mat[:m, :]
+    elif rank is not None:
         key1, key2 = random.split(key)
-        mat = (random.normal(key=key1, shape=(shape[0], rank)) @
-            random.normal(key=key2, shape=(rank, shape[1]))) / rank
+        mat = (random.normal(key=key1, shape=(m, rank)) @
+            random.normal(key=key2, shape=(rank, n))) / rank
+    else:
+        mat = random.normal(key=key, shape=shape)
     return mat
 
 def generate_observation_matrix(key, percent_observed, shape):

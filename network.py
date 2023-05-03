@@ -10,14 +10,12 @@ def _init_weight(key, shape, init_type, init_scale):
     if init_type == "normal":
         # There is a sqrt(d) factor since we want initializations to have same size (Frobenius norm) in expectation
         weight = init_scale * random.normal(key=key, shape=shape) / jnp.sqrt(d)
-
     elif init_type == "orth":
         weight = init_scale * random.orthogonal(key=key, n=d)
         if m > n:
             weight = weight[:, :n]
         else:
             weight = weight[:m, :]
-
     else:
         raise ValueError(f"{init_type} initialization not implemented.")
     
@@ -26,7 +24,6 @@ def _init_weight(key, shape, init_type, init_scale):
 def init_net(key, input_dim, output_dim, width, depth, init_type, init_scale):
     if depth == 1:
         return [_init_weight(key, (output_dim, input_dim), init_type, init_scale)]
-    
     keys = random.split(key, num=depth)
     weights = [_init_weight(keys[0], (width, input_dim), init_type, init_scale)]
     for i in range(depth-2):
@@ -39,24 +36,20 @@ def create_network(pre=None, post=None):
 
     def network_fn(weights):
         product = weights[0]
-
         for w in weights[1:]:
             product = w @ product
         if pre is not None:
             product = product @ pre
         if post is not None:
             product = post @ product
-
         return product
     
     return jit(network_fn)
 
 def compute_end_to_end(weights):
     product = weights[0]
-
     for w in weights[1:]:
         product = w @ product
-
     return product
 
 def compute_prefactor(init_weights, loss_fn, network_fn, grad_rank):
