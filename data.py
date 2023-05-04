@@ -7,6 +7,8 @@ def generate_data(key, shape, rank=None, orth=False):
     m, n = shape
     d = jnp.maximum(m, n)
 
+    assert rank is None or orth is False, "Data cannot be low rank and orthogonal"
+
     if orth:
         mat = random.orthogonal(key=key, n=d)
         if m > n:
