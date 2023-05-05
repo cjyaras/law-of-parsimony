@@ -1,6 +1,6 @@
 import jax.numpy as jnp
 import jax.random as random
-from jax import jit, grad
+from jax import grad
 from utils import svd
 
 def _init_weight(key, shape, init_type, init_scale):
@@ -32,27 +32,13 @@ def init_net(key, input_dim, output_dim, width, depth, init_type, init_scale):
 
     return weights
 
-def create_network(pre=None, post=None):
-
-    def network_fn(weights):
-        product = weights[0]
-        for w in weights[1:]:
-            product = w @ product
-        if pre is not None:
-            product = product @ pre
-        if post is not None:
-            product = post @ product
-        return product
-    
-    return jit(network_fn)
-
 def compute_end_to_end(weights):
     product = weights[0]
     for w in weights[1:]:
         product = w @ product
     return product
 
-def compute_prefactor(init_weights, e2e_loss_fn, grad_rank):
+def compute_factor(init_weights, e2e_loss_fn, grad_rank):
 
     width = init_weights[0].shape[0]
     init_scale = jnp.linalg.norm(init_weights[0]) / jnp.sqrt(width)
@@ -75,8 +61,10 @@ def compress_network(init_weights, V, grad_rank):
     V1_1 = V[:, :2*grad_rank]
     UL_1 = compute_end_to_end(init_weights) @ V1_1 / (init_scale ** depth)
 
-    compressed_initial_weights = [
+    compressed_init_weights = [V1_1.T]
+    compressed_init_weights += [
         init_scale * jnp.eye(2*grad_rank) for _ in range(depth)
     ]
+    compressed_init_weights += [UL_1]
 
-    return compressed_initial_weights, V1_1, UL_1
+    return compressed_init_weights
