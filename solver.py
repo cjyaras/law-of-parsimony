@@ -12,7 +12,7 @@ def _update_weights(weights, gradient, step_size, precond):
     else:
         return jax.tree_map(lambda p, g, s: p - s * g, weights, gradient, step_size)
     
-def compute_dlr(step_size, depth, prop=0.1):
+def compute_dlr(step_size, depth, prop):
     step_sizes = depth * [step_size]
     step_sizes[0] *= prop
     step_sizes[-1] *= prop
