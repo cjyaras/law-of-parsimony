@@ -19,7 +19,7 @@ def compute_dlr(step_size, depth, prop):
 
     return step_sizes
 
-def train(init_weights, train_e2e_loss_fn, n_epochs, step_size, precond=False, test_e2e_loss_fn=None, tol=0, n_inner_loops=100):
+def train(init_weights, train_e2e_loss_fn, n_outer_loops, step_size, precond=False, test_e2e_loss_fn=None, tol=0, n_inner_loops=100):
 
     if type(step_size) is float:
         step_size = len(init_weights) * [step_size]
@@ -42,8 +42,7 @@ def train(init_weights, train_e2e_loss_fn, n_epochs, step_size, precond=False, t
     time_list = [0.]
     weights = init_weights
 
-    num_iters = n_epochs // n_inner_loops
-    pbar = tqdm(range(num_iters))
+    pbar = tqdm(range(n_outer_loops))
 
     start_time = time()
     for _ in pbar:

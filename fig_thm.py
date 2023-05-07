@@ -29,17 +29,17 @@ key, subkey = split(key)
 input_data = generate_data(key=subkey, shape=(input_dim, n_samples), orth=True)
 
 key, subkey = split(key)
-init_weights = init_net(key=subkey, input_dim=input_dim, output_dim=output_dim, width=input_dim, depth=depth, init_type="orth", init_scale=init_scale)
+init_weights = init_net(key=subkey, input_dim=input_dim, output_dim=output_dim, width=input_dim, depth=depth, init_type=init_type, init_scale=init_scale)
 
 l2_loss_fn = create_l2_loss(target, input_data=input_data)
 e2e_loss_fn = compose(l2_loss_fn, compute_end_to_end)
 
-n_epochs = 1000
+n_outer_loops = 10
 step_size = 1e-1
 result = train(
     init_weights=init_weights,
     train_e2e_loss_fn=e2e_loss_fn,
-    n_epochs=n_epochs,
+    n_outer_loops=n_outer_loops,
     step_size=step_size
 )
 
@@ -75,17 +75,17 @@ key, subkey = split(key)
 input_data = generate_data(key=subkey, shape=(input_dim, n_samples), orth=False)
 
 key, subkey = split(key)
-init_weights = init_net(key=subkey, input_dim=input_dim, output_dim=output_dim, width=input_dim, depth=depth, init_type="orth", init_scale=init_scale)
+init_weights = init_net(key=subkey, input_dim=input_dim, output_dim=output_dim, width=input_dim, depth=depth, init_type=init_type, init_scale=init_scale)
 
 l2_loss_fn = create_l2_loss(target, input_data=input_data)
 e2e_loss_fn = compose(l2_loss_fn, compute_end_to_end)
 
-n_epochs = 1000
+n_outer_loops = 10
 step_size = 1e-1
 result = train(
     init_weights=init_weights,
     train_e2e_loss_fn=e2e_loss_fn,
-    n_epochs=n_epochs,
+    n_outer_loops=n_outer_loops,
     step_size=step_size
 )
 

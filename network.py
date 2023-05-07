@@ -32,6 +32,18 @@ def init_net(key, input_dim, output_dim, width, depth, init_type, init_scale):
 
     return weights
 
+def init_bm(masked_target, r):
+    U, s, V = svd(masked_target)
+    sqrtS = jnp.diag(jnp.sqrt(s[:r]))
+    X = U[:, :r] @ sqrtS
+    Y = V[:, :r] @ sqrtS
+
+    return [X, Y]
+
+def compute_end_to_end_bm(weights):
+    X, Y = weights
+    return X @ Y.T
+
 def compute_end_to_end(weights):
     product = weights[0]
     for w in weights[1:]:

@@ -3,7 +3,7 @@ import jax.numpy as jnp
 
 from math import prod
 
-def generate_data(key, shape, rank=None, orth=False):
+def generate_data(key, shape, rank=None, orth=False, ):
     m, n = shape
     d = jnp.maximum(m, n)
     assert rank is None or orth is False, "Data cannot be low rank and orthogonal"
