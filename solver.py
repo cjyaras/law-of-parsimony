@@ -6,20 +6,10 @@ from jax.lax import fori_loop
 from tqdm.auto import tqdm
 from time import time
 
-def _update_weights(weights, gradient, step_size, precond):
-    if precond:
-        return jax.tree_map(lambda p, g, s: p - s * g @ jnp.linalg.pinv(p.T @ p), weights, gradient, step_size)
-    else:
-        return jax.tree_map(lambda p, g, s: p - s * g, weights, gradient, step_size)
-    
-def compute_dlr(step_size, depth, prop):
-    step_sizes = depth * [step_size]
-    step_sizes[0] *= prop
-    step_sizes[-1] *= prop
+def _update_weights(weights, gradient, step_size):
+    return jax.tree_map(lambda p, g, s: p - s * g, weights, gradient, step_size)
 
-    return step_sizes
-
-def train(init_weights, train_e2e_loss_fn, n_outer_loops, step_size, precond=False, test_e2e_loss_fn=None, tol=0, n_inner_loops=100):
+def train(init_weights, train_e2e_loss_fn, n_outer_loops, step_size, test_e2e_loss_fn=None, tol=0, n_inner_loops=100, save_weights=False):
 
     if type(step_size) is float:
         step_size = len(init_weights) * [step_size]
@@ -27,7 +17,7 @@ def train(init_weights, train_e2e_loss_fn, n_outer_loops, step_size, precond=Fal
     # Define fun body in lax.fori_loop
     def body_fun(_, w):
         g = grad(train_e2e_loss_fn)(w)
-        return _update_weights(w, g, step_size, precond)
+        return _update_weights(w, g, step_size)
     
     # Run once to compile
     fori_loop(0, n_inner_loops, body_fun, init_weights)
@@ -41,6 +31,8 @@ def train(init_weights, train_e2e_loss_fn, n_outer_loops, step_size, precond=Fal
 
     time_list = [0.]
     weights = init_weights
+    if save_weights:
+        weights_list = [weights]
 
     pbar = tqdm(range(n_outer_loops))
 
@@ -59,6 +51,9 @@ def train(init_weights, train_e2e_loss_fn, n_outer_loops, step_size, precond=Fal
             test_loss = test_e2e_loss_fn(weights)
             test_loss_list.append(test_loss)
 
+        if save_weights:
+            weights_list.append(weights)
+
         time_list.append(time() - start_time)
 
         if train_loss < tol:
@@ -72,5 +67,8 @@ def train(init_weights, train_e2e_loss_fn, n_outer_loops, step_size, precond=Fal
 
     if test_e2e_loss_fn is not None:
         result_dict['test_loss'] = jnp.array(test_loss_list)
+
+    if save_weights:
+        result_dict['weights'] = weights_list
 
     return result_dict

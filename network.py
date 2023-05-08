@@ -3,46 +3,36 @@ import jax.random as random
 from jax import grad
 from utils import svd
 
-def _init_weight(key, shape, init_type, init_scale):
+def _init_weight_orth(key, shape, init_scale):
     m, n = shape
     d = jnp.maximum(m, n)
-
-    if init_type == "normal":
-        # There is a sqrt(d) factor since we want initializations to have same size (Frobenius norm) in expectation
-        weight = init_scale * random.normal(key=key, shape=shape) / jnp.sqrt(d)
-    elif init_type == "orth":
-        weight = init_scale * random.orthogonal(key=key, n=d)
-        if m > n:
-            weight = weight[:, :n]
-        else:
-            weight = weight[:m, :]
+    weight = init_scale * random.orthogonal(key=key, n=d)
+    if m > n:
+        weight = weight[:, :n]
     else:
-        raise ValueError(f"{init_type} initialization not implemented.")
-    
+        weight = weight[:m, :]
     return weight
 
-def init_net(key, input_dim, output_dim, width, depth, init_type, init_scale):
-    if depth == 1:
-        return [_init_weight(key, (output_dim, input_dim), init_type, init_scale)]
+def init_net_orth(key, input_dim, output_dim, width, depth, init_scale):
     keys = random.split(key, num=depth)
-    weights = [_init_weight(keys[0], (width, input_dim), init_type, init_scale)]
+
+    weights = [_init_weight_orth(keys[0], (width, input_dim), init_scale)]
     for i in range(depth-2):
-        weights.append(_init_weight(keys[i+1], (width, width), init_type, init_scale))
-    weights.append(_init_weight(keys[-1], (output_dim, width), init_type, init_scale))
+        weights.append(_init_weight_orth(keys[i+1], (width, width), init_scale))
+    weights.append(_init_weight_orth(keys[-1], (output_dim, width), init_scale))
 
     return weights
 
-def init_bm(masked_target, r):
-    U, s, V = svd(masked_target)
-    sqrtS = jnp.diag(jnp.sqrt(s[:r]))
-    X = U[:, :r] @ sqrtS
-    Y = V[:, :r] @ sqrtS
+def init_net_spec(target, width, depth):
+    U, s, V = svd(target)
+    sqrtS = jnp.diag(jnp.sqrt(s[:width]))
 
-    return [X, Y]
+    weights = [sqrtS @ V[:, :width].T]
+    for _ in range(depth-2):
+        weights.append(jnp.eye(width))
+    weights.append(U[:, :width] @ sqrtS)
 
-def compute_end_to_end_bm(weights):
-    X, Y = weights
-    return X @ Y.T
+    return weights
 
 def compute_end_to_end(weights):
     product = weights[0]
