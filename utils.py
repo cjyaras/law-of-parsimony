@@ -1,6 +1,4 @@
 import jax.numpy as jnp
-from jax.random import orthogonal
-
 
 def svd(A):
     U, s, VT = jnp.linalg.svd(A)

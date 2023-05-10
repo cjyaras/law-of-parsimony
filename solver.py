@@ -62,7 +62,7 @@ def train(init_weights, train_e2e_loss_fn, n_outer_loops, step_size, test_e2e_lo
     result_dict = {
         'train_loss': jnp.array(train_loss_list),
         'time': jnp.array(time_list),
-        'final_weights': weights
+        'final_weights': weights,
     }
 
     if test_e2e_loss_fn is not None:
