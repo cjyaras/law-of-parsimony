@@ -1,12 +1,9 @@
 import jax.numpy as jnp
 
-def create_loss(target, input_data=None, mask=None, reduction="mean"):
+def create_loss(target, mask=None, reduction="mean"):
 
     def loss_fn(output):
-        if input_data is not None:
-            residual = output @ input_data - target
-        else:
-            residual = output - target
+        residual = output - target
 
         if mask is not None:
             residual *= mask

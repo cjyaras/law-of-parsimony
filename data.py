@@ -11,6 +11,9 @@ def generate_data(key, shape, rank=None):
         mat = U[:, :rank] @ jnp.diag(s[:rank]) @ V[:, :rank].T
     return mat
 
+def generate_label_matrix(labels):
+    return 
+
 def generate_observation_matrix(key, percent_observed, shape):
     n_entries = prod(shape)
     n_observations = int(n_entries * percent_observed)

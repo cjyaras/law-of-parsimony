@@ -34,7 +34,7 @@ def init_net_spec(target, width, depth):
 
     return weights
 
-def compute_end_to_end(weights):
+def compute_output(weights, relu=False, input_data=None):
     product = weights[0]
     for w in weights[1:]:
         product = w @ product
@@ -61,7 +61,7 @@ def compress_network(init_weights, V, grad_rank):
     init_scale = jnp.linalg.norm(init_weights[0]) / jnp.sqrt(width)
 
     V1_1 = V[:, :2*grad_rank]
-    UL_1 = compute_end_to_end(init_weights) @ V1_1 / (init_scale ** depth)
+    UL_1 = compute_output(init_weights) @ V1_1 / (init_scale ** depth)
 
     compressed_init_weights = [V1_1.T]
     compressed_init_weights += [
