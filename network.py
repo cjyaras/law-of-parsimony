@@ -1,6 +1,7 @@
 import jax.numpy as jnp
 import jax.random as random
 from jax import grad
+from jax.nn import relu
 from utils import svd
 
 def _init_weight_orth(key, shape, init_scale):
@@ -34,11 +35,27 @@ def init_net_spec(target, width, depth):
 
     return weights
 
-def compute_output(weights, relu=False, input_data=None):
+def compute_end_to_end(weights):
     product = weights[0]
     for w in weights[1:]:
         product = w @ product
     return product
+
+def compute_outputs(weights, input_data, nonlinear=False):
+    intermediates = [input_data]
+    output = weights[0] @ input_data
+    if nonlinear:
+        output = relu(output)
+    intermediates.append(output)
+
+    for w in weights[1:-1]:
+        output = w @ output
+        if nonlinear:
+            output = relu(output)
+        intermediates.append(output)
+
+    output = weights[-1] @ output
+    return output, intermediates
 
 def compute_factor(init_weights, e2e_loss_fn, grad_rank):
 

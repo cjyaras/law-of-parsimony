@@ -1,8 +1,12 @@
 import jax.random as random
 import jax.numpy as jnp
+from jax.nn import one_hot
+from math import prod
 from utils import svd
 
-from math import prod
+def generate_orthogonal_input(key, input_dim, total_samples):
+    assert input_dim <= total_samples
+    return random.orthogonal(key, n=total_samples)[:input_dim, :]
 
 def generate_data(key, shape, rank=None):
     mat = random.normal(key=key, shape=shape)
@@ -11,8 +15,10 @@ def generate_data(key, shape, rank=None):
         mat = U[:, :rank] @ jnp.diag(s[:rank]) @ V[:, :rank].T
     return mat
 
-def generate_label_matrix(labels):
-    return 
+def generate_labels_and_target(num_classes, num_samples_per_class):
+    labels = jnp.ravel(jnp.array([num_samples_per_class*[k] for k in range(num_classes)]))
+    target = one_hot(labels, num_classes).T
+    return labels, target
 
 def generate_observation_matrix(key, percent_observed, shape):
     n_entries = prod(shape)
