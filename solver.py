@@ -11,7 +11,7 @@ def _update_weights(weights, gradient, step_size):
 
 def train(init_weights, train_e2e_loss_fn, n_outer_loops, step_size, test_e2e_loss_fn=None, tol=0, n_inner_loops=100, save_weights=False):
 
-    if type(step_size) is float:
+    if type(step_size) is float or int:
         step_size = len(init_weights) * [step_size]
 
     # Define fun body in lax.fori_loop
