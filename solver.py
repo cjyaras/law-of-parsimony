@@ -6,10 +6,11 @@ from jax.lax import fori_loop
 from tqdm.auto import tqdm
 from time import time
 
-def _update_weights(weights, gradient, step_size):
-    return jax.tree_map(lambda p, g, s: p - s * g, weights, gradient, step_size)
+def _update_weights(weights, gradient, step_size, weight_decay):
+    wd = weight_decay
+    return jax.tree_map(lambda p, g, s: (1 - s * wd) * p - s * g, weights, gradient, step_size)
 
-def train(init_weights, train_e2e_loss_fn, n_outer_loops, step_size, test_e2e_loss_fn=None, tol=0, n_inner_loops=100, save_weights=False):
+def train(init_weights, train_e2e_loss_fn, n_outer_loops, step_size, weight_decay=0, test_e2e_loss_fn=None, tol=0, n_inner_loops=100, save_weights=False):
 
     if type(step_size) is not list:
         step_size = len(init_weights) * [step_size]
@@ -17,7 +18,7 @@ def train(init_weights, train_e2e_loss_fn, n_outer_loops, step_size, test_e2e_lo
     # Define fun body in lax.fori_loop
     def body_fun(_, w):
         g = grad(train_e2e_loss_fn)(w)
-        return _update_weights(w, g, step_size)
+        return _update_weights(w, g, step_size, weight_decay)
     
     # Run once to compile
     fori_loop(0, n_inner_loops, body_fun, init_weights)
