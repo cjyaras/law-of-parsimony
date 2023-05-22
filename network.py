@@ -14,6 +14,14 @@ def _init_weight_orth(key, shape, init_scale):
         weight = weight[:m, :]
     return weight
 
+def _init_weight_norm(key, shape, init_scale):
+    m, n = shape
+    d = jnp.minimum(m, n)
+
+    weight = init_scale * random.normal(key=key, shape=shape) / jnp.sqrt(d)
+
+    return weight
+
 def init_net_orth(key, input_dim, output_dim, width, depth, init_scale):
     keys = random.split(key, num=depth)
 

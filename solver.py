@@ -1,5 +1,6 @@
 import jax.numpy as jnp
 import jax
+import optax
 
 from jax import grad
 from jax.lax import fori_loop
