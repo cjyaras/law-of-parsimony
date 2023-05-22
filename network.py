@@ -2,7 +2,7 @@ import jax.numpy as jnp
 import jax.random as random
 from jax import grad
 from jax.nn import relu
-from utils import svd
+from utils import svd, compose
 
 def _init_weight_orth(key, shape, init_scale):
     m, n = shape
@@ -18,28 +18,21 @@ def _init_weight_norm(key, shape, init_scale):
     m, n = shape
     d = jnp.minimum(m, n)
 
-    weight = init_scale * random.normal(key=key, shape=shape) / jnp.sqrt(d)
+    weight = init_scale * random.normal(key=key, shape=shape)
+    # Correction factor to have the same norm as orth init
+    correct_factor = jnp.sqrt(d) / jnp.sqrt(m * n)
 
-    return weight
+    return correct_factor * weight
 
-def init_net_orth(key, input_dim, output_dim, width, depth, init_scale):
+def init_net(key, input_dim, output_dim, width, depth, init_scale, init_type='orth'):
+
+    init_func = _init_weight_orth if init_type == 'orth' else _init_weight_norm
     keys = random.split(key, num=depth)
 
-    weights = [_init_weight_orth(keys[0], (width, input_dim), init_scale)]
+    weights = [init_func(keys[0], (width, input_dim), init_scale)]
     for i in range(depth-2):
-        weights.append(_init_weight_orth(keys[i+1], (width, width), init_scale))
-    weights.append(_init_weight_orth(keys[-1], (output_dim, width), init_scale))
-
-    return weights
-
-def init_net_spec(target, width, depth):
-    U, s, V = svd(target)
-    sqrtS = jnp.diag(jnp.sqrt(s[:width]))
-
-    weights = [sqrtS @ V[:, :width].T]
-    for _ in range(depth-2):
-        weights.append(jnp.eye(width))
-    weights.append(U[:, :width] @ sqrtS)
+        weights.append(init_func(keys[i+1], (width, width), init_scale))
+    weights.append(init_func(keys[-1], (output_dim, width), init_scale))
 
     return weights
 
@@ -65,7 +58,9 @@ def compute_outputs(weights, input_data, nonlinear=False):
     output = weights[-1] @ output
     return output, intermediates
 
-def compute_factor(init_weights, e2e_loss_fn, grad_rank):
+def compute_factor(init_weights, network_fn, loss_fn, grad_rank):
+
+    e2e_loss_fn = compose(loss_fn, network_fn)
 
     width = init_weights[0].shape[0]
     init_scale = jnp.linalg.norm(init_weights[0]) / jnp.sqrt(width)
