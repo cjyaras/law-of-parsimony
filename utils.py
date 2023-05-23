@@ -16,7 +16,11 @@ def compute_angle(U, V):
         U = U.reshape(-1, 1)
     if len(V.shape) < 2:
         V = V.reshape(-1, 1)
-    return jnp.arccos(jnp.clip(jnp.linalg.norm(jnp.dot(U.T, V), ord=2), 0, 1))
+
+    s = jnp.clip(svdvals(jnp.dot(U.T, V)), 0, 1)
+    theta = jnp.arccos(s)
+
+    return jnp.max(theta)
 
 def compute_svd_series(weights, layer, rank):
     input_dim = weights[0][0].shape[1]
