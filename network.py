@@ -24,9 +24,27 @@ def _init_weight_norm(key, shape, init_scale):
 
     return correct_factor * weight
 
+def _init_weight_unif(key, shape, init_scale):
+    m, n = shape
+    d = jnp.minimum(m, n)
+
+    weight = random.uniform(key=key, shape=shape, minval=-init_scale, maxval=init_scale)
+    # Correction factor to have the same norm as orth init
+    correct_factor = jnp.sqrt(3) * jnp.sqrt(d) / jnp.sqrt(m * n)
+
+    return correct_factor * weight
+
 def init_net(key, input_dim, output_dim, width, depth, init_scale, init_type='orth'):
 
-    init_func = _init_weight_orth if init_type == 'orth' else _init_weight_norm
+    if init_type == 'orth':
+        init_func = _init_weight_orth 
+    elif init_type == 'norm':
+        init_func = _init_weight_norm
+    elif init_type == 'unif':
+        init_func = _init_weight_unif
+    else:
+        raise ValueError('Init type not recognized')
+    
     keys = random.split(key, num=depth)
 
     weights = [init_func(keys[0], (width, input_dim), init_scale)]
