@@ -2,11 +2,13 @@ import jax.numpy as jnp
 import jax.random as random
 from jax import grad
 from jax.nn import relu
-from utils import svd, compose
+
+from utils import compose, svd
+
 
 def _init_weight_orth(key, shape, init_scale):
     m, n = shape
-    d = jnp.maximum(m, n)
+    d = int(jnp.maximum(m, n))
     weight = init_scale * random.orthogonal(key=key, n=d)
     if m > n:
         weight = weight[:, :n]

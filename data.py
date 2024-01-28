@@ -1,8 +1,11 @@
-import jax.random as random
-import jax.numpy as jnp
-from jax.nn import one_hot
 from math import prod
+
+import jax.numpy as jnp
+import jax.random as random
+from jax.nn import one_hot
+
 from utils import svd
+
 
 def generate_orthogonal_input(key, input_dim, total_samples):
     assert input_dim <= total_samples
