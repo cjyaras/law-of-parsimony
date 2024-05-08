@@ -3,6 +3,7 @@ import jax.random as random
 import numpy as np
 from jax import grad
 from jax.nn import relu
+
 from utils import compose, svd
 
 
